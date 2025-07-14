@@ -1,0 +1,39 @@
+{
+  "name": "image-processing",
+  "version": "1.0.0",
+  "description": "图片处理工具 - 支持压缩、水印等功能",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "vue": "^3.3.4",
+    "element-plus": "^2.3.8",
+    "@element-plus/icons-vue": "^2.1.0",
+    "browser-image-compression": "^2.0.2",
+    "file-saver": "^2.0.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.2.3",
+    "vite": "^4.4.5",
+    "eslint": "^8.45.0",
+    "eslint-plugin-vue": "^9.15.1",
+    "@vue/eslint-config-prettier": "^8.0.0",
+    "prettier": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0 <=20.0.0"
+  },
+  "keywords": [
+    "vue",
+    "image",
+    "compression",
+    "watermark",
+    "processing"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+} 
