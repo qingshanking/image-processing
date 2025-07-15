@@ -23,6 +23,8 @@
         <template #tip>
           <div class="el-upload__tip">
             支持 jpg/png/gif/webp 格式图片
+            <br>
+            <span style="color: #409eff;">💡 提示：也可以直接粘贴图片（Ctrl+V）</span>
           </div>
         </template>
       </el-upload>
@@ -370,7 +372,31 @@ export default {
       return Math.round(ratio)
     }
   },
+  mounted() {
+    // 添加粘贴事件监听
+    document.addEventListener('paste', this.handlePaste)
+  },
+  beforeUnmount() {
+    // 移除粘贴事件监听
+    document.removeEventListener('paste', this.handlePaste)
+  },
   methods: {
+    handlePaste(e) {
+      const items = e.clipboardData?.items
+      if (!items) return
+      
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile()
+          if (file) {
+            this.handleFileChange({ raw: file })
+            this.$message.success('已从剪贴板粘贴图片')
+            break
+          }
+        }
+      }
+    },
     handleFileChange(file) {
       this.originalFile = file.raw
       this.originalImage = URL.createObjectURL(file.raw)
