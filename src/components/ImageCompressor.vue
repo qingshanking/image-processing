@@ -264,6 +264,57 @@
                 </el-form-item>
               </el-form>
             </el-tab-pane>
+            
+            <el-tab-pane label="全屏水印" name="fullscreen">
+              <el-form :model="fullscreenWatermark" label-width="80px">
+                <el-form-item label="水印文字">
+                  <el-input v-model="fullscreenWatermark.text" placeholder="例如：此照片仅做**使用" size="small" />
+                </el-form-item>
+                <el-form-item label="字体大小">
+                  <el-slider
+                    v-model="fullscreenWatermark.fontSize"
+                    :min="16"
+                    :max="60"
+                    :step="2"
+                    show-input
+                    input-size="small"
+                  />
+                </el-form-item>
+                <el-form-item label="字体颜色">
+                  <el-color-picker v-model="fullscreenWatermark.color" size="small" />
+                </el-form-item>
+                <el-form-item label="透明度">
+                  <el-slider
+                    v-model="fullscreenWatermark.opacity"
+                    :min="0.05"
+                    :max="0.5"
+                    :step="0.05"
+                    show-input
+                    input-size="small"
+                  />
+                </el-form-item>
+                <el-form-item label="旋转角度">
+                  <el-slider
+                    v-model="fullscreenWatermark.rotation"
+                    :min="-45"
+                    :max="45"
+                    :step="5"
+                    show-input
+                    input-size="small"
+                  />
+                </el-form-item>
+                <el-form-item label="间距">
+                  <el-slider
+                    v-model="fullscreenWatermark.spacing"
+                    :min="50"
+                    :max="200"
+                    :step="10"
+                    show-input
+                    input-size="small"
+                  />
+                </el-form-item>
+              </el-form>
+            </el-tab-pane>
           </el-tabs>
         </div>
         
@@ -345,6 +396,14 @@ export default {
         opacity: 0.7,
         rotation: 0,
         position: 'bottom-right'
+      },
+      fullscreenWatermark: {
+        text: '',
+        fontSize: 20,
+        color: '#000000',
+        opacity: 0.5,
+        rotation: 0,
+        spacing: 100
       },
       availableIcons: [
         { name: 'Star', label: '星星' },
@@ -486,6 +545,8 @@ export default {
             this.addIconWatermark(ctx, canvas.width, canvas.height)
           } else if (this.activeWatermarkTab === 'image') {
             await this.addImageWatermark(ctx, canvas.width, canvas.height)
+          } else if (this.activeWatermarkTab === 'fullscreen') {
+            await this.addFullscreenWatermark(ctx, canvas.width, canvas.height)
           }
           
           // 转换为blob
@@ -704,6 +765,51 @@ export default {
         watermarkImg.onerror = reject
         watermarkImg.src = URL.createObjectURL(this.imageWatermark.imageFile)
       })
+    },
+
+    async addFullscreenWatermark(ctx, width, height) {
+      const { text, fontSize, color, opacity, rotation, spacing } = this.fullscreenWatermark
+      
+      if (!text.trim()) return
+      
+      ctx.save()
+      ctx.globalAlpha = opacity
+      ctx.font = `${fontSize}px Arial, sans-serif`
+      ctx.fillStyle = color
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      
+      // 计算文字的实际宽度
+      const textWidth = ctx.measureText(text).width
+      const textHeight = fontSize * 1.2
+      
+      // 计算水印间距
+      const horizontalSpacing = Math.max(textWidth + spacing, 100)
+      const verticalSpacing = Math.max(textHeight + spacing, 80)
+      
+      // 计算需要绘制的行数和列数
+      const cols = Math.ceil(width / horizontalSpacing) + 2
+      const rows = Math.ceil(height / verticalSpacing) + 2
+      
+      // 计算起始位置，确保水印覆盖整个图片
+      const startX = -horizontalSpacing
+      const startY = -verticalSpacing
+      
+      // 绘制全屏水印网格
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const x = startX + col * horizontalSpacing
+          const y = startY + row * verticalSpacing
+          
+          ctx.save()
+          ctx.translate(x, y)
+          ctx.rotate((rotation * Math.PI) / 180)
+          ctx.fillText(text, 0, 0)
+          ctx.restore()
+        }
+      }
+      
+      ctx.restore()
     },
     
     formatFileSize(bytes) {
