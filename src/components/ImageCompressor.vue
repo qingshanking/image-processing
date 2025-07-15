@@ -31,50 +31,92 @@
     </div>
 
     <div v-if="originalImage" class="image-preview">
-      <h4>原始图片</h4>
-      <div class="image-info">
-        <img :src="originalImage" alt="原始图片" />
-        <div class="info-text">
-          <p>大小: {{ formatFileSize(originalFile.size) }}</p>
-          <p>尺寸: {{ originalDimensions.width }} × {{ originalDimensions.height }}</p>
+      <div class="preview-container">
+        <div class="preview-item">
+          <h4>原始图片</h4>
+          <div class="image-info">
+            <el-image
+              :src="originalImage"
+              :preview-src-list="[originalImage]"
+              :initial-index="0"
+              fit="contain"
+              class="preview-image"
+              preview-teleported
+            />
+            <div class="info-text">
+              <p>大小: {{ formatFileSize(originalFile.size) }}</p>
+              <p>尺寸: {{ originalDimensions.width }} × {{ originalDimensions.height }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div v-if="compressedImage" class="preview-item">
+          <h4>压缩结果</h4>
+          <div class="image-info">
+            <el-image
+              :src="compressedImage"
+              :preview-src-list="[compressedImage]"
+              :initial-index="0"
+              fit="contain"
+              class="preview-image"
+              preview-teleported
+            />
+            <div class="info-text">
+              <p>大小: {{ formatFileSize(compressedFile.size) }}</p>
+              <p>压缩率: {{ compressionRatio }}%</p>
+              <p>尺寸: {{ compressedDimensions.width }} × {{ compressedDimensions.height }}</p>
+            </div>
+          </div>
+          <el-button type="success" @click="downloadCompressed" style="margin-top: 10px;">
+            <el-icon><Download /></el-icon>
+            下载压缩图片
+          </el-button>
         </div>
       </div>
     </div>
-    <!-- 并排对比预览：仅当原图和压缩图都存在时显示 -->
-    <div v-if="originalImage && compressedImage" style="margin: 24px 0; display: flex; flex-direction: column; align-items: center;">
-      <h4 style="color: #409eff;">对比预览</h4>
-      <ImageSideBySide :before="originalImage" :after="compressedImage" />
-    </div>
+
+
+
 
     <div v-if="originalImage" class="compression-settings">
       <h4>压缩设置</h4>
-      <el-form :model="compressionSettings" label-width="100px">
-        <el-form-item label="质量">
-          <el-slider
-            v-model="compressionSettings.quality"
-            :min="0.1"
-            :max="1"
-            :step="0.1"
-            show-input
-            input-size="small"
-          />
-        </el-form-item>
-        <el-form-item label="最大宽度">
-          <el-input-number
-            v-model="compressionSettings.maxWidth"
-            :min="100"
-            :max="4000"
-            size="small"
-          />
-        </el-form-item>
-        <el-form-item label="最大高度">
-          <el-input-number
-            v-model="compressionSettings.maxHeight"
-            :min="100"
-            :max="4000"
-            size="small"
-          />
-        </el-form-item>
+      <el-form :model="compressionSettings" label-width="80px">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="质量">
+              <el-slider
+                v-model="compressionSettings.quality"
+                :min="0.1"
+                :max="1"
+                :step="0.1"
+                show-input
+                input-size="small"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="最大宽度">
+              <el-input-number
+                v-model="compressionSettings.maxWidth"
+                :min="100"
+                :max="4000"
+                size="small"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="最大高度">
+              <el-input-number
+                v-model="compressionSettings.maxHeight"
+                :min="100"
+                :max="4000"
+                size="small"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
         
         <!-- 水印设置 -->
         <el-form-item label="添加水印">
@@ -327,36 +369,16 @@
       </el-form>
     </div>
 
-    <div v-if="compressedImage" class="compressed-result">
-      <h4>压缩结果</h4>
-      <div class="image-info">
-        <img :src="compressedImage" alt="压缩后图片" />
-        <div class="info-text">
-          <p>大小: {{ formatFileSize(compressedFile.size) }}</p>
-          <p>压缩率: {{ compressionRatio }}%</p>
-          <p>尺寸: {{ compressedDimensions.width }} × {{ compressedDimensions.height }}</p>
-        </div>
-      </div>
-      <el-button type="success" @click="downloadCompressed">
-        <el-icon><Download /></el-icon>
-        下载压缩图片
-      </el-button>
-    </div>
+
   </el-card>
 </template>
 
 <script>
 import imageCompression from 'browser-image-compression'
 import { saveAs } from 'file-saver'
-import ImageCompareSlider from './ImageCompareSlider.vue'
-import ImageSideBySide from './ImageSideBySide.vue'
 
 export default {
   name: 'ImageCompressor',
-  components: {
-    ImageCompareSlider,
-    ImageSideBySide
-  },
   data() {
     return {
       originalFile: null,
@@ -840,14 +862,23 @@ export default {
   margin-bottom: 20px;
 }
 
-.image-preview, .compressed-result {
+.image-preview {
   margin: 20px 0;
   padding: 15px;
   background-color: #f8f9fa;
   border-radius: 6px;
 }
 
-.image-preview h4, .compressed-result h4 {
+.preview-container {
+  display: flex;
+  gap: 20px;
+}
+
+.preview-item {
+  flex: 1;
+}
+
+.preview-item h4 {
   margin: 0 0 15px 0;
   color: #409eff;
 }
@@ -863,6 +894,42 @@ export default {
   max-height: 150px;
   border-radius: 4px;
   border: 1px solid #dcdfe6;
+}
+
+.preview-image {
+  max-width: 200px !important;
+  max-height: 150px !important;
+  border-radius: 4px !important;
+  border: 1px solid #dcdfe6 !important;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.preview-image:hover {
+  transform: scale(1.02);
+}
+
+/* 确保 el-image 内部的 img 元素也应用样式 */
+.preview-image :deep(.el-image__inner) {
+  max-width: 200px !important;
+  max-height: 150px !important;
+  border-radius: 4px !important;
+  object-fit: contain !important;
+}
+
+.image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  color: #909399;
+  font-size: 14px;
+}
+
+.image-error .el-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
 }
 
 .info-text p {
@@ -883,9 +950,7 @@ export default {
   color: #409eff;
 }
 
-.compressed-result .el-button {
-  margin-top: 15px;
-}
+
 
 .watermark-settings {
   margin-top: 15px;
