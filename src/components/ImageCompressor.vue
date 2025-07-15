@@ -629,21 +629,31 @@ export default {
       const padding = 20
       let x, y
       
+      // 如果是文字水印，需要计算文字的实际宽度
+      let textWidth = 0
+      if (text) {
+        // 创建临时canvas来测量文字宽度
+        const tempCanvas = document.createElement('canvas')
+        const tempCtx = tempCanvas.getContext('2d')
+        tempCtx.font = `${this.textWatermark.fontSize}px Arial, sans-serif`
+        textWidth = tempCtx.measureText(text).width
+      }
+      
       switch (position) {
         case 'top-left':
-          x = padding + size/2
+          x = padding + Math.max(size/2, textWidth/2)
           y = padding + size/2
           break
         case 'top-right':
-          x = width - padding - size/2
+          x = width - padding - Math.max(size/2, textWidth/2)
           y = padding + size/2
           break
         case 'bottom-left':
-          x = padding + size/2
+          x = padding + Math.max(size/2, textWidth/2)
           y = height - padding - size/2
           break
         case 'bottom-right':
-          x = width - padding - size/2
+          x = width - padding - Math.max(size/2, textWidth/2)
           y = height - padding - size/2
           break
         case 'center':
